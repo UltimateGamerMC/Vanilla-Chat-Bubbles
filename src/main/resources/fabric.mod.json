@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "chat-bubbles",
+	"version": "${version}",
+	"name": "Chat Bubbles",
+	"description": "Adds chat bubbles over players when they are talking",
+	"authors": [
+		"Becky Tidus"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/chat-bubbles/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"main": [
+			"com.beckytidus.chatbubbles.ChatBubbles"
+		],
+		"client": [
+			"com.beckytidus.chatbubbles.ChatBubblesClient"
+		],
+		"modmenu": [
+			"com.beckytidus.chatbubbles.ModMenuIntegration"
+		]
+	},
+	"mixins": [
+		"chat-bubbles.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.17.3",
+		"minecraft": "~1.21.9",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
