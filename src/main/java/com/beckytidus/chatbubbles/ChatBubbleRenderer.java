@@ -1,23 +1,33 @@
 package com.beckytidus.chatbubbles;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.LightmapTextureManager;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.Vec3d;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.network.chat.Component;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
 public class ChatBubbleRenderer {
-    public static void render(MatrixStack matrices, Camera camera, VertexConsumerProvider.Immediate vertexConsumers, double cameraX, double cameraY, double cameraZ) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player == null || client.world == null) {
+    public static void render(
+        PoseStack poseStack,
+        CameraRenderState cameraState,
+        MultiBufferSource.BufferSource bufferSource,
+        double cameraX,
+        double cameraY,
+        double cameraZ
+    ) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.player == null || client.level == null) {
             return;
         }
 
         long currentTime = System.currentTimeMillis();
         java.util.List<ChatBubble> bubbles = ChatBubbleManager.getInstance().getAllBubbles();
+        double maxDistSq = com.beckytidus.chatbubbles.config.ChatBubblesConfig.INSTANCE.maxDistance;
+        maxDistSq = maxDistSq * maxDistSq;
 
         for (ChatBubble bubble : bubbles) {
             float alpha = bubble.getAlpha(currentTime);
@@ -25,17 +35,25 @@ public class ChatBubbleRenderer {
                 continue;
             }
 
-            Vec3d bubblePos = bubble.getPosition(currentTime);
+            Vec3 bubblePos = bubble.getPosition(currentTime, client.level);
+            double dx = bubblePos.x - cameraX;
+            double dy = bubblePos.y - cameraY;
+            double dz = bubblePos.z - cameraZ;
+            if (dx * dx + dy * dy + dz * dz > maxDistSq) {
+                continue;
+            }
 
-            matrices.push();
-            matrices.translate((float)(bubblePos.x - cameraX), (float)(bubblePos.y - cameraY) + 0.07f, (float)(bubblePos.z - cameraZ));
-            matrices.multiply(camera.getRotation());
+            poseStack.pushPose();
+            poseStack.translate((float)(bubblePos.x - cameraX), (float)(bubblePos.y - cameraY) + 0.07f, (float)(bubblePos.z - cameraZ));
+            if (cameraState.initialized) {
+                poseStack.mulPose(cameraState.orientation);
+            }
 
             float scale = (float) com.beckytidus.chatbubbles.config.ChatBubblesConfig.INSTANCE.textScale;
-            matrices.scale(scale, -scale, scale);
+            poseStack.scale(scale, -scale, scale);
 
-            String text = bubble.getMessage().getString();
-            float offset = (float)(-client.textRenderer.getWidth(text)) / 2.0f;
+            Component msg = bubble.getMessage();
+            float offset = (float)(-client.font.width(msg)) / 2.0f;
 
             int configColor = com.beckytidus.chatbubbles.config.ChatBubblesConfig.INSTANCE.textColor;
             int textColor = (configColor & 0xFFFFFF) | ((int)(alpha * 255) << 24);
@@ -46,24 +64,24 @@ public class ChatBubbleRenderer {
             int bgAlpha = (int)(alpha * bgAlphaPercent * 255);
             int backgroundColor = (bgColor & 0xFFFFFF) | (bgAlpha << 24);
 
-            Matrix4f matrix = matrices.peek().getPositionMatrix();
+            Matrix4f matrix = poseStack.last().pose();
 
-            client.textRenderer.draw(
-                text,
+            client.font.drawInBatch(
+                msg,
                 offset,
                 0.0f,
                 textColor,
                 false,
                 matrix,
-                vertexConsumers,
-                TextRenderer.TextLayerType.NORMAL,
+                bufferSource,
+                Font.DisplayMode.NORMAL,
                 backgroundColor,
-                LightmapTextureManager.MAX_LIGHT_COORDINATE
+                LightCoordsUtil.FULL_BRIGHT
             );
 
-            matrices.pop();
+            poseStack.popPose();
         }
 
-        vertexConsumers.drawCurrentLayer();
+        bufferSource.endBatch();
     }
 }

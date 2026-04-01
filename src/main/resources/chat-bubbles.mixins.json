@@ -1,10 +1,9 @@
 {
 	"required": true,
 	"package": "com.beckytidus.chatbubbles.mixin",
-	"compatibilityLevel": "JAVA_21",
+	"compatibilityLevel": "JAVA_25",
 	"client": [
-		"ChatHudMixin",
-		"GameTestDebugRendererMixin"
+		"ChatComponentMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

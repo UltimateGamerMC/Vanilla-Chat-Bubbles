@@ -32,6 +32,16 @@ bin/
 
 run/
 
+server/libraries/
+server/.fabric/
+server/versions/
+server/world/
+server/logs/
+server/server.jar
+server/fabric-server-launch.jar
+server/fabric-installer.jar
+server/mods/*.jar
+
 # java
 
 hs_err_*.log

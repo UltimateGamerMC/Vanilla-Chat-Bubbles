@@ -1,7 +1,7 @@
 package com.beckytidus.chatbubbles;
 
-import net.minecraft.text.Text;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.phys.Vec3;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -17,8 +17,8 @@ public class ChatBubbleManager {
         return INSTANCE;
     }
 
-    public void addChatBubble(UUID playerId, Text message, Vec3d position) {
-        ChatBubble bubble = new ChatBubble(message, position, System.currentTimeMillis());
+    public void addChatBubble(UUID playerId, Component message, Vec3 position) {
+        ChatBubble bubble = new ChatBubble(message, playerId, position, System.currentTimeMillis());
         playerBubbles.computeIfAbsent(playerId, k -> new ArrayList<>()).add(bubble);
     }
 

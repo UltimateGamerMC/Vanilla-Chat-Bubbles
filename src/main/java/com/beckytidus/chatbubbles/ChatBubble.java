@@ -1,19 +1,26 @@
 package com.beckytidus.chatbubbles;
 
-import net.minecraft.text.Text;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
 
 public class ChatBubble {
-    private final Text message;
-    private final Vec3d initialPosition;
+    private final Component message;
+    private final UUID ownerId;
+    private final Vec3 initialPosition;
     private final long creationTime;
     private final int displayDuration;
     private final int fadeDuration;
     private final int fadeInDuration;
     private final double upwardSpeed;
 
-    public ChatBubble(Text message, Vec3d position, long creationTime) {
+    public ChatBubble(Component message, UUID ownerId, Vec3 position, long creationTime) {
         this.message = message;
+        this.ownerId = ownerId;
         this.initialPosition = position;
         this.creationTime = creationTime;
         this.displayDuration = com.beckytidus.chatbubbles.config.ChatBubblesConfig.INSTANCE.displayDuration;
@@ -22,15 +29,25 @@ public class ChatBubble {
         this.upwardSpeed = com.beckytidus.chatbubbles.config.ChatBubblesConfig.INSTANCE.upwardSpeed;
     }
 
-    public Text getMessage() {
+    public Component getMessage() {
         return message;
     }
 
-    public Vec3d getPosition(long currentTime) {
+    public Vec3 getPosition(long currentTime, @Nullable ClientLevel level) {
+        Vec3 base = initialPosition;
+        if (com.beckytidus.chatbubbles.config.ChatBubblesConfig.INSTANCE.bubbleFollowPlayer && level != null) {
+            for (AbstractClientPlayer player : level.players()) {
+                if (player.getUUID().equals(ownerId)) {
+                    double h = com.beckytidus.chatbubbles.config.ChatBubblesConfig.INSTANCE.bubbleHeight;
+                    base = player.position().add(0, player.getBbHeight() + h, 0);
+                    break;
+                }
+            }
+        }
         long elapsed = currentTime - creationTime;
         double secondsElapsed = elapsed / 1000.0;
         double yOffset = secondsElapsed * upwardSpeed;
-        return initialPosition.add(0, yOffset, 0);
+        return base.add(0, yOffset, 0);
     }
 
     public long getCreationTime() {

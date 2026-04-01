@@ -14,6 +14,7 @@ public class ChatBubblesConfig {
     private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("chat-bubbles.json");
 
     public boolean showPlayerName = false;
+    public boolean bubbleFollowPlayer = false;
     public double bubbleHeight = 0.75;
     public double textScale = 0.025;
     public int displayDuration = 3000;
@@ -33,6 +34,7 @@ public class ChatBubblesConfig {
                 String json = Files.readString(CONFIG_PATH);
                 ChatBubblesConfig loaded = GSON.fromJson(json, ChatBubblesConfig.class);
                 INSTANCE.showPlayerName = loaded.showPlayerName;
+                INSTANCE.bubbleFollowPlayer = loaded.bubbleFollowPlayer;
                 INSTANCE.bubbleHeight = loaded.bubbleHeight;
                 INSTANCE.textScale = loaded.textScale;
                 INSTANCE.displayDuration = loaded.displayDuration;
